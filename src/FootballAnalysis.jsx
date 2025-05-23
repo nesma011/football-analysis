@@ -1,17 +1,16 @@
 import React, { useState, useRef, useEffect } from 'react';
 import EventCategories from './Components/EventCategories';
 import PlayerModal from './Components/PlayerModal';
-import TechniqueModal from './Components/TechniqueModal';
 import ResultModal from './Components/ResultModal';
 import LocationModal from './Components/LocationModal';
 import ExtraInfoModal from './Components/ExtraInfoModal'; 
 import PlayerReceiverModal from './Components/PlayerReceiverModal'; 
 import Navbar from './Components/Navbar';
-import GoalkeeperModal from './Components/GoalkeeperModal';
 import ExportButton from './Components/ExportButton';
 import BodyPartModal from './Components/BodyPartModal';
 import EventTable from './Components/EventTable';
-
+import TechniqueModal from './components/TechniqueModal';
+import GoalkeeperModal from './components/GoalkeeperModal';
 
 const FootballAnalysis = () => {
   const [videoSrc, setVideoSrc] = useState(null);
@@ -56,7 +55,7 @@ const FootballAnalysis = () => {
           id: event.id || Date.now() + Math.random(),
           videoTimestamp: timestamp,
           endTime: endTime,
-          duration: duration / 1000, // المدة بالثواني
+          duration: duration / 1000, 
           extraInfo: event.extraInfo !== undefined && event.extraInfo !== null ? event.extraInfo : '-',
           passType: event.passType !== undefined && event.passType !== null ? event.passType : '-',
           bodyPart: event.bodyPart !== undefined && event.bodyPart !== null ? event.bodyPart : '-',

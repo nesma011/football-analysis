@@ -1,18 +1,26 @@
 import React from 'react';
 
-const GoalkeeperModal = ({ onConfirm, onClose ,videoRef ,setIsPlaying }) => {
-  const actions = [
-    { type: 'Punch', color: 'bg-orange-500' },
-    { type: 'Smother', color: 'bg-orange-600' },
-    { type: 'Diving Save', color: 'bg-orange-700' },
-    { type: 'Keeper Sweeper', color: 'bg-orange-800' }
+const GoalkeeperModal = ({ onConfirm, onClose, videoRef, setIsPlaying, eventType }) => {
+  const goalkeeperTechniques = [
+    { type: 'Shot Saved', color: 'bg-orange-500' },
+    { type: 'Save', color: 'bg-orange-600' },
+    { type: 'Collected', color: 'bg-orange-700' },
+    { type: 'Smother', color: 'bg-orange-800' },
+    { type: 'Keeper Sweeper', color: 'bg-orange-900' }
   ];
-    const handleActionSelect = (action) => {
+
+  const handleActionSelect = (technique) => {
+    if (!technique) {
+      alert('Please select a technique.'); 
+      return;
+    }
+
     if (videoRef?.current) {
       videoRef.current.pause();
       setIsPlaying(false);
     }
-    onConfirm(action);
+
+    onConfirm(technique);
   };
 
   return (
@@ -20,14 +28,13 @@ const GoalkeeperModal = ({ onConfirm, onClose ,videoRef ,setIsPlaying }) => {
       <div className="bg-white p-6 rounded-lg w-96">
         <h2 className="text-xl font-bold mb-4">Goalkeeper Action</h2>
         <div className="grid grid-cols-2 gap-2">
-          {actions.map((action) => (
+          {goalkeeperTechniques.map((technique) => (
             <button
-              key={action.type}
-      onClick={() => handleActionSelect(action.type)}
-
-              className={`p-3 ${action.color} text-white rounded hover:opacity-90`}
+              key={technique.type}
+              onClick={() => handleActionSelect(technique.type)}
+              className={`p-3 ${technique.color} text-white rounded hover:opacity-90`}
             >
-              {action.type}
+              {technique.type}
             </button>
           ))}
         </div>
