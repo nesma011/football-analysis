@@ -1,12 +1,16 @@
 import React, { useState } from 'react';
 
 const TechniqueModal = ({ eventType, onConfirm, onClose ,videoRef ,setIsPlaying}) => {
-  const techniques = {
-    'Shot': ['Normal Shot', 'Volley', 'Penalty', 'Half Volley', 'Overhead Kick'],
-    'Ground Pass': ['Inside Foot', 'Outside Foot', 'Heel', 'Header'],
-    'Goalkeeper': ['Punch', 'Smother', 'Diving Save', 'Standing Save'],
-    'Duel': ['Aerial', 'Tackle', 'Block']
-  };
+const techniques = {
+  'Ground Pass': ['Head', 'Right Foot', 'Left Foot', 'Other', 'Keeper Arm', 'Heel', 'Arial Pass'],
+  'Low Pass': ['Head', 'Right Foot', 'Left Foot', 'Other', 'Keeper Arm', 'Heel'],
+  'High Pass': ['Head', 'Right Foot', 'Left Foot', 'Other', 'Keeper Arm', 'Heel'],
+  'Dribble': ['Over run', 'Nut'],
+  'Dribble Past': ['Over run', 'Nut'],
+  'Shot': ['Normal Shot', 'Volley', 'Penalty', 'Half volly', 'over kik'],
+  'Goalkeeper': ['Shot Saved', 'Save', 'Punch', 'Collected', 'Smother', 'Penalty Saved', 'Keeper Sweeper', 'Goal Conceded', 'Penalty Conceded', 'Shot Faced'],
+  'Duel': ['Aerial', 'Tackle']
+};
 
   const [selectedTechnique, setSelectedTechnique] = useState('');
 
