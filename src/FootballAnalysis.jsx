@@ -48,14 +48,15 @@ const FootballAnalysis = () => {
     if (savedEvents) {
       const parsedEvents = JSON.parse(savedEvents).map(event => {
         const timestamp = event.videoTimestamp !== undefined ? event.videoTimestamp : (event.startTime ? (new Date(event.startTime).getTime() / 1000) : 0);
-        const endTime = event.endTime ? event.endTime : (event.videoTimestamp || 0);
-        const duration = event.endTime && event.startTime ? (endTime - timestamp) * 1000 : 0;
+        const endTime = event.endTime !== undefined ? event.endTime : (event.videoTimestamp || 0);
+        // استخدام الـ duration المحفوظ إذا موجود، لو لا يتم حسابه
+        const duration = event.duration !== undefined ? event.duration : (endTime && timestamp ? (endTime - timestamp) * 1000 / 1000 : 0);
         return {
           ...event,
           id: event.id || Date.now() + Math.random(),
           videoTimestamp: timestamp,
           endTime: endTime,
-          duration: duration / 1000, 
+          duration: duration,
           extraInfo: event.extraInfo !== undefined && event.extraInfo !== null ? event.extraInfo : '-',
           passType: event.passType !== undefined && event.passType !== null ? event.passType : '-',
           bodyPart: event.bodyPart !== undefined && event.bodyPart !== null ? event.bodyPart : '-',
@@ -288,9 +289,9 @@ const FootballAnalysis = () => {
       endTime: currentEvent.endTime || (Date.now() / 1000) 
     };
     const duration = updatedEvent.endTime && updatedEvent.videoTimestamp 
-      ? (updatedEvent.endTime - updatedEvent.videoTimestamp) * 1000 
-      : 0;
-    updatedEvent.duration = duration / 1000; 
+      ? (updatedEvent.endTime - updatedEvent.videoTimestamp) * 1000 / 1000 
+      : (currentEvent.duration || 0); // استخدام الـ duration الموجود إذا موجود
+    updatedEvent.duration = duration;
     setCurrentEvent(updatedEvent);
     setShowExtraInfoModal(false);
     finalizeEvent(updatedEvent);
@@ -301,14 +302,14 @@ const FootballAnalysis = () => {
   const finalizeEvent = (updatedEvent = currentEvent) => {
     const eventId = updatedEvent.id || (Date.now() + Math.floor(Math.random() * 1000));
     const endTime = updatedEvent.endTime || (Date.now() / 1000);
-    const duration = updatedEvent.endTime && updatedEvent.videoTimestamp 
-      ? (endTime - updatedEvent.videoTimestamp) * 1000 
-      : 0;
+    const duration = updatedEvent.duration || (updatedEvent.endTime && updatedEvent.videoTimestamp 
+      ? (endTime - updatedEvent.videoTimestamp) * 1000 / 1000 
+      : 0);
     const completedEvent = {
       ...updatedEvent,
       id: eventId,
       endTime: endTime,
-      duration: duration / 1000,
+      duration: duration,
       videoTimestamp: updatedEvent.videoTimestamp || 0,
       extraInfo: updatedEvent.extraInfo !== undefined && updatedEvent.extraInfo !== null ? updatedEvent.extraInfo : '-',
       passType: updatedEvent.passType !== undefined && updatedEvent.passType !== null ? updatedEvent.passType : '-',
