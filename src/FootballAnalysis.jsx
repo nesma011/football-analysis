@@ -49,7 +49,7 @@ const FootballAnalysis = () => {
       const parsedEvents = JSON.parse(savedEvents).map(event => {
         const timestamp = event.videoTimestamp !== undefined ? event.videoTimestamp : (event.startTime ? (new Date(event.startTime).getTime() / 1000) : 0);
         const endTime = event.endTime ? event.endTime : (event.videoTimestamp || 0);
-        const duration = event.endTime && event.startTime ? (endTime - timestamp) * 1000 : 0; // تحويل لملي ثانية ثم لثواني
+        const duration = event.endTime && event.startTime ? (endTime - timestamp) * 1000 : 0;
         return {
           ...event,
           id: event.id || Date.now() + Math.random(),
@@ -99,6 +99,12 @@ const FootballAnalysis = () => {
     const passEvents = ['Ground Pass', 'Low Pass', 'High Pass'];
     const isPassEvent = passEvents.includes(eventType);
 
+    // إيقاف الفيديو لما يتم اختيار event بالـ hotkey
+    if (videoRef.current) {
+      videoRef.current.pause();
+      setIsPlaying(false);
+    }
+
     const existingPendingPass = events.find(event => 
       event.type === eventType && 
       event.player && 
@@ -112,10 +118,6 @@ const FootballAnalysis = () => {
       setCurrentEvent(existingPendingPass);
       setPendingPassEvent(existingPendingPass);
       setShowResultModal(true);
-      if (videoRef?.current) {
-        videoRef.current.pause();
-        setIsPlaying(false);
-      }
     } else {
       setCurrentEvent({ 
         type: eventType,
@@ -283,12 +285,12 @@ const FootballAnalysis = () => {
       passType,
       bodyPart: bodyPart || currentEvent.bodyPart,
       saveTechnique,
-      endTime: currentEvent.endTime || (Date.now() / 1000) // تحديث endTime إذا لسه ماتحدثتش
+      endTime: currentEvent.endTime || (Date.now() / 1000) 
     };
     const duration = updatedEvent.endTime && updatedEvent.videoTimestamp 
-      ? (updatedEvent.endTime - updatedEvent.videoTimestamp) * 1000 // فرق بالملي ثانية
+      ? (updatedEvent.endTime - updatedEvent.videoTimestamp) * 1000 
       : 0;
-    updatedEvent.duration = duration / 1000; // المدة بالثواني
+    updatedEvent.duration = duration / 1000; 
     setCurrentEvent(updatedEvent);
     setShowExtraInfoModal(false);
     finalizeEvent(updatedEvent);
@@ -300,13 +302,13 @@ const FootballAnalysis = () => {
     const eventId = updatedEvent.id || (Date.now() + Math.floor(Math.random() * 1000));
     const endTime = updatedEvent.endTime || (Date.now() / 1000);
     const duration = updatedEvent.endTime && updatedEvent.videoTimestamp 
-      ? (endTime - updatedEvent.videoTimestamp) * 1000 // فرق بالملي ثانية
+      ? (endTime - updatedEvent.videoTimestamp) * 1000 
       : 0;
     const completedEvent = {
       ...updatedEvent,
       id: eventId,
       endTime: endTime,
-      duration: duration / 1000, // المدة بالثواني
+      duration: duration / 1000,
       videoTimestamp: updatedEvent.videoTimestamp || 0,
       extraInfo: updatedEvent.extraInfo !== undefined && updatedEvent.extraInfo !== null ? updatedEvent.extraInfo : '-',
       passType: updatedEvent.passType !== undefined && updatedEvent.passType !== null ? updatedEvent.passType : '-',
@@ -362,7 +364,7 @@ const FootballAnalysis = () => {
     };
     document.addEventListener('keydown', handleKeyPress);
     return () => document.removeEventListener('keydown', handleKeyPress);
-  }, []);
+  }, [events]);
 
   return (
     <div className="flex flex-col min-h-screen p-4 space-y-4">

@@ -182,7 +182,6 @@ const LocationModal = ({ onSelect, onClose, eventType,videoRef ,setIsPlaying }) 
         ctx.strokeRect(fieldX - goalWidth, goalY, goalWidth, goalHeight);
         ctx.strokeRect(fieldX + fieldWidth, goalY, goalWidth, goalHeight);
 
-        // إعادة رسم نقاط المرمى
         if (eventType === 'Goalkeeper') {
           Object.values(goalCoordinates).forEach(coord => {
             ctx.fillStyle = '#ff0000';
