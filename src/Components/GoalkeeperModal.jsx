@@ -1,13 +1,12 @@
 import React from 'react';
 
 const GoalkeeperModal = ({ onConfirm, onClose, videoRef, setIsPlaying, eventType }) => {
-  const goalkeeperTechniques = [
-    { type: 'Shot Saved', color: 'bg-orange-500' },
-    { type: 'Save', color: 'bg-orange-600' },
-    { type: 'Collected', color: 'bg-orange-700' },
-    { type: 'Smother', color: 'bg-orange-800' },
-    { type: 'Keeper Sweeper', color: 'bg-orange-900' }
-  ];
+const goalkeeperTechniques = [
+  { type: 'Shot Saved', color: 'bg-orange-500' },
+  { type: 'Save', color: 'bg-orange-600' },
+  { type: 'Collected', color: 'bg-orange-700' },
+  { type: 'Smother', color: 'bg-orange-800' },
+];
 
   const handleActionSelect = (technique) => {
     if (!technique) {

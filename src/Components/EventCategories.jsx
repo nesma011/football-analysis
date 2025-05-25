@@ -23,7 +23,6 @@ const eventCategories = [
       { type: 'Miss control', text: 'Miss control', shortcut: '5', color: 'bg-green-700' },
       { type: 'Ball Recovery', text: 'Ball Recovery', shortcut: 'R', color: 'bg-green-800' },
       { type: 'Press', text: 'Press', shortcut: 'G', color: 'bg-green-900' },
-      { type: 'Shield', text: 'Shield', shortcut: null, color: 'bg-lime-500' },
     ],
   },
   {
@@ -52,8 +51,6 @@ const eventCategories = [
       { type: 'Ball Drop', text: 'Ball Drop', shortcut: null, color: 'bg-gray-800' },
       { type: 'Water Break', text: 'Water Break', shortcut: null, color: 'bg-gray-900' },
       { type: 'Sub', text: 'Sub', shortcut: null, color: 'bg-purple-600' },
-      { type: 'Shield', text: 'Shield', shortcut: null, color: 'bg-purple-700' },
-      { type: 'Keeper Sweeper', text: 'Keeper Sweeper', shortcut: null, color: 'bg-purple-500' },
     ],
   },
 ];

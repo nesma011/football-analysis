@@ -1,37 +1,52 @@
-
-
 import React from 'react';
 
+const ResultModal = ({ eventType, currentEvent, onConfirm, onClose, videoRef, setIsPlaying }) => {
+  const results = eventType === 'Goalkeeper' && currentEvent?.actionType === 'Punch'
+    ? ['Fail', 'In Play Danger', 'In Play Safe', 'Punched Out', 'Punch Outcome']
+    : eventType === 'Goalkeeper' && currentEvent?.actionType === 'Keeper Sweeper'
+      ? ['Clam', 'Clear']
+      : eventType === 'Goalkeeper'
+        ? ['Success', 'In play Safe', 'In play Danger', 'Saved Twice', 'Touched out', 'Touched in', 'No Touch']
+        : eventType === 'Dribble'
+          ? ['Successful', 'Unsuccessful']
+          : eventType === 'Interception'
+            ? ['Won', 'Lost in Play', 'Lost Out']
+            : eventType === 'Duel'
+              ? ['Lost Out', 'Lost in Play', 'Success In Play', 'Won']
+              : ['Complete', 'Incomplete', 'Out'];
 
-const ResultModal = ({ eventType, onConfirm, onClose, videoRef, setIsPlaying  }) => {
-  const results = eventType === 'Goalkeeper' 
-    ? ['Success', 'In play Safe', 'In play Danger', 'Saved Twice', 'Touched out', 'Touched in', 'No Touch'] 
-    : eventType === 'Foul Won' 
-      ? ['Penalty', 'Advantage', 'Defensive'] 
-      : ['Complete', 'Incomplete', 'Out'];
-
-       const handleResultSelect = (result) => {
+  const handleResultSelect = (result) => {
     if (videoRef?.current) {
       videoRef.current.pause();
       setIsPlaying(false);
     }
     onConfirm(result);
   };
+
   return (
-    <div className="fixed inset-0 bg-transparent flex items-center justify-center">
-      <div className="bg-white p-4 rounded shadow">
-        <h2 className="text-lg mb-2">Select Result</h2>
+    <div className="fixed inset-0 bg-transparent flex items-center justify-center z-50">
+      <div className="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full">
+        <h2 className="text-lg font-semibold mb-4">Select Result</h2>
         <div className="flex flex-col space-y-2">
-          {results.map((result) => (
-            <button
-              key={result}
-      onClick={() => handleResultSelect(result)}
-              className="p-2 bg-gray-500 text-white rounded"
-            >
-              {result}
-            </button>
-          ))}
-          <button onClick={onClose} className="p-2 bg-red-500 text-white rounded">Cancel</button>
+          {results.length > 0 ? (
+            results.map((result) => (
+              <button
+                key={result}
+                onClick={() => handleResultSelect(result)}
+                className="p-2 bg-gray-500 hover:bg-gray-600 text-white rounded transition-colors"
+              >
+                {result}
+              </button>
+            ))
+          ) : (
+            <p className="text-red-500">No results available for this event.</p>
+          )}
+          <button
+            onClick={onClose}
+            className="p-2 bg-red-500 hover:bg-red-600 text-white rounded mt-4"
+          >
+            Cancel
+          </button>
         </div>
       </div>
     </div>
