@@ -1,5 +1,4 @@
 import React, { useState, useRef, useEffect } from 'react';
-import EventCategories from './components/EventCategories';
 import TeamModal from './components/TeamModal';
 import PlayerModal from './components/PlayerModal';
 import ResultModal from './components/ResultModal';
@@ -11,7 +10,8 @@ import ExportButton from './components/ExportButton';
 import BodyPartModal from './components/BodyPartModal';
 import EventTable from './components/EventTable';
 import GoalkeeperModal from './components/GoalkeeperModal';
-
+import EventCategories from './components/EventCategories';
+import TechniqueModal from './components/TechniqueModal';
 
 
 const FootballAnalysis = () => {
