@@ -9,9 +9,10 @@ import Navbar from './Components/Navbar';
 import ExportButton from './Components/ExportButton';
 import BodyPartModal from './Components/BodyPartModal';
 import EventTable from './Components/EventTable';
+
+import TeamModal from './Components/TeamModal';
 import TechniqueModal from './components/TechniqueModal';
 import GoalkeeperModal from './components/GoalkeeperModal';
-
 
 const FootballAnalysis = () => {
   const [videoSrc, setVideoSrc] = useState(null);
@@ -25,11 +26,12 @@ const FootballAnalysis = () => {
   const [showExtraInfoModal, setShowExtraInfoModal] = useState(false);
   const [showPlayerReceiverModal, setShowPlayerReceiverModal] = useState(false);
   const [showBodyPartModal, setShowBodyPartModal] = useState(false);
+  const [showTeamModal, setShowTeamModal] = useState(false);
   const [locationType, setLocationType] = useState(null);
   const [showGoalkeeperModal, setShowGoalkeeperModal] = useState(false);
-  const [selectingReceiver, setSelectingReceiver] = useState(false);
+  const [selectingPlayerOut, setSelectingPlayerOut] = useState(false);
+  const [selectingPlayerIn, setSelectingPlayerIn] = useState(false);
   const [pendingPassEvent, setPendingPassEvent] = useState(null);
-  const [selectingSecondPlayer, setSelectingSecondPlayer] = useState(false);
   const videoRef = useRef(null);
 
   const handleNewVideoUpload = (newVideoURL) => {
@@ -62,7 +64,10 @@ const FootballAnalysis = () => {
           passType: event.passType !== undefined && event.passType !== null ? event.passType : '-',
           bodyPart: event.bodyPart !== undefined && event.bodyPart !== null ? event.bodyPart : '-',
           saveTechnique: event.saveTechnique !== undefined && event.saveTechnique !== null ? event.saveTechnique : '-',
-          playerReceiver: event.playerReceiver !== undefined && event.playerReceiver !== null ? event.playerReceiver : '-'
+          playerReceiver: event.playerReceiver !== undefined && event.playerReceiver !== null ? event.playerReceiver : '-',
+          playerOut: event.playerOut !== undefined && event.playerOut !== null ? event.playerOut : '-',
+          playerIn: event.playerIn !== undefined && event.playerIn !== null ? event.playerIn : '-',
+          team: event.team !== undefined && event.team !== null ? event.team : '-'
         };
       });
       console.log('Loaded Events from localStorage:', parsedEvents);
@@ -97,10 +102,9 @@ const FootballAnalysis = () => {
     }
   };
 
-  const startEvent = (eventType) => {
+const startEvent = (eventType) => {
     const passEvents = ['Ground Pass', 'Low Pass', 'High Pass'];
     const resultEvents = ['Goalkeeper', 'Dribble', 'Interception', 'Duel'];
-    const isPassEvent = passEvents.includes(eventType);
 
     if (videoRef.current) {
       videoRef.current.pause();
@@ -116,7 +120,7 @@ const FootballAnalysis = () => {
       !event.result
     );
 
-    if (isPassEvent && existingPendingPass) {
+    if (passEvents.includes(eventType) && existingPendingPass) {
       setCurrentEvent(existingPendingPass);
       setPendingPassEvent(existingPendingPass);
       setShowResultModal(true);
@@ -146,6 +150,19 @@ const FootballAnalysis = () => {
         videoTimestamp: videoRef.current?.currentTime || 0
       });
       setShowPlayerModal(true);
+    } else if (eventType === 'Sub') {
+      setCurrentEvent({
+        type: eventType,
+        videoTimestamp: videoRef.current?.currentTime || 0
+      });
+      setSelectingPlayerOut(true);
+      setShowPlayerModal(true);
+    } else if (eventType === 'Own Goal For') {
+      setCurrentEvent({
+        type: eventType,
+        videoTimestamp: videoRef.current?.currentTime || 0
+      });
+      setShowTeamModal(true);
     } else {
       setCurrentEvent({
         type: eventType,
@@ -155,7 +172,7 @@ const FootballAnalysis = () => {
     }
   };
 
-  const handlePlayerSelect = (playerName) => {
+ const handlePlayerSelect = (playerName) => {
     if (videoRef.current) {
       videoRef.current.pause();
       setIsPlaying(false);
@@ -163,29 +180,39 @@ const FootballAnalysis = () => {
     const noExtraEvents = ['Dispossessed', 'Miss control', 'Ball Recovery', 'Offside', 'Own Goal', 'Press', 'Shield', 'Foul Won', 'Clearance', 'Block'];
     const playerOnlyEvents = ['Error', 'Bad Behaviour', 'Injury Stop'];
 
-    if (selectingReceiver) {
-      setCurrentEvent({ ...currentEvent, playerReceiver: playerName });
+    console.log('handlePlayerSelect - playerName:', playerName, 'selectingPlayerOut:', selectingPlayerOut, 'selectingPlayerIn:', selectingPlayerIn, 'currentEvent:', currentEvent);
+
+    if (selectingPlayerOut && currentEvent.type === 'Sub') {
+      const updatedEvent = { ...currentEvent, playerOut: playerName };
+      setCurrentEvent(updatedEvent);
       setShowPlayerModal(false);
-      setSelectingReceiver(false);
-      if (currentEvent.type === 'Sub') {
-        setCurrentEvent({ ...currentEvent, playerReceiver: playerName });
-        setSelectingSecondPlayer(true);
+      setSelectingPlayerOut(false);
+      setSelectingPlayerIn(true);
+      setTimeout(() => {
         setShowPlayerModal(true);
-      } else if (currentEvent.type === 'Own Goal For') {
-        setCurrentEvent({ ...currentEvent, team: playerName });
-        setLocationType('start');
-        setShowLocationModal(true);
-      } else if (['Ground Pass', 'Low Pass', 'High Pass'].includes(currentEvent.type)) {
-        setLocationType('end');
-        setShowLocationModal(true);
-      } else {
-        setShowExtraInfoModal(true);
-      }
-    } else if (selectingSecondPlayer) {
-      setCurrentEvent({ ...currentEvent, playerIn: playerName });
+      }, 100);
+    } else if (selectingPlayerIn && currentEvent.type === 'Sub') {
+      const updatedEvent = { 
+        ...currentEvent, 
+        playerIn: playerName,
+        startLocation: null,
+        endLocation: null,
+        technique: '-',
+        result: '-',
+        extraInfo: '-',
+        passType: '-',
+        bodyPart: '-',
+        saveTechnique: '-',
+        playerReceiver: '-',
+        team: '-',
+        endTime: videoRef.current?.currentTime || Date.now() / 1000,
+        duration: 0
+      };
+      setCurrentEvent(updatedEvent);
       setShowPlayerModal(false);
-      setSelectingSecondPlayer(false);
-      finalizeEvent({ ...currentEvent, playerIn: playerName });
+      setSelectingPlayerIn(false);
+      console.log('Sub Event Complete:', updatedEvent);
+      finalizeEvent(updatedEvent);
     } else {
       setCurrentEvent({ ...currentEvent, player: playerName });
       setShowPlayerModal(false);
@@ -194,9 +221,6 @@ const FootballAnalysis = () => {
         setShowGoalkeeperModal(true);
       } else if (['Ground Pass', 'Low Pass', 'High Pass', 'Shot'].includes(currentEvent.type)) {
         setShowTechniqueModal(true);
-      } else if (currentEvent.type === 'Own Goal For' || currentEvent.type === 'Sub') {
-        setShowPlayerModal(true);
-        setSelectingReceiver(true);
       } else if (playerOnlyEvents.includes(currentEvent.type)) {
         finalizeEvent({ ...currentEvent, player: playerName });
       } else if (noExtraEvents.includes(currentEvent.type)) {
@@ -210,6 +234,13 @@ const FootballAnalysis = () => {
         setShowLocationModal(true);
       }
     }
+  };
+
+  const handleTeamSelect = (teamName) => {
+    console.log('handleTeamSelect - teamName:', teamName);
+    setCurrentEvent({ ...currentEvent, team: teamName });
+    setShowTeamModal(false);
+    finalizeEvent({ ...currentEvent, team: teamName });
   };
 
   const handleTechniqueSelect = (technique) => {
@@ -252,7 +283,7 @@ const FootballAnalysis = () => {
           if (currentEvent.type === 'Goalkeeper') {
             setShowBodyPartModal(true);
           } else {
-            setShowResultModal(true); // طلب ResultModal لـ Duel, Interception, Dribble
+            setShowResultModal(true);
           }
         } else if (noExtraEvents.includes(currentEvent.type)) {
           setShowLocationModal(false);
@@ -294,16 +325,14 @@ const FootballAnalysis = () => {
         setEvents(updatedEvents);
         localStorage.setItem('footballEvents', JSON.stringify(updatedEvents));
         if (result === 'Complete') {
-          setSelectingReceiver(true);
-          setShowPlayerModal(true);
+          setShowPlayerReceiverModal(true);
         } else {
           setLocationType('end');
           setShowLocationModal(true);
         }
       } else {
         if (result === 'Complete') {
-          setSelectingReceiver(true);
-          setShowPlayerModal(true);
+          setShowPlayerReceiverModal(true);
         } else {
           setLocationType('end');
           setShowLocationModal(true);
@@ -356,6 +385,7 @@ const FootballAnalysis = () => {
       : (updatedEvent.endTime && updatedEvent.videoTimestamp
         ? (endTime - updatedEvent.videoTimestamp) * 1000 / 1000
         : 0);
+    
     const completedEvent = {
       ...updatedEvent,
       id: eventId,
@@ -367,18 +397,26 @@ const FootballAnalysis = () => {
       bodyPart: updatedEvent.bodyPart !== undefined && updatedEvent.bodyPart !== null ? updatedEvent.bodyPart : '-',
       saveTechnique: updatedEvent.saveTechnique !== undefined && updatedEvent.saveTechnique !== null ? updatedEvent.saveTechnique : '-',
       playerReceiver: updatedEvent.playerReceiver !== undefined && updatedEvent.playerReceiver !== null ? updatedEvent.playerReceiver : '-',
-      playerIn: updatedEvent.playerIn || '-',
-      result: updatedEvent.result || '-'
+      playerOut: updatedEvent.playerOut !== undefined && updatedEvent.playerOut !== null ? updatedEvent.playerOut : '-',
+      playerIn: updatedEvent.playerIn !== undefined && updatedEvent.playerIn !== null ? updatedEvent.playerIn : '-',
+      team: updatedEvent.team !== undefined && updatedEvent.team !== null ? updatedEvent.team : '-'
     };
+    
     console.log('FinalizeEvent - completedEvent:', completedEvent);
+    
     const updatedEvents = events.filter(event => event.id !== completedEvent.id);
     updatedEvents.push(completedEvent);
     setEvents(updatedEvents);
     localStorage.setItem('footballEvents', JSON.stringify(updatedEvents));
+    
     setCurrentEvent(null);
     setPendingPassEvent(null);
-    videoRef.current.play();
-    setIsPlaying(true);
+    
+    // Don't auto-play video for Sub events
+    if (updatedEvent.type !== 'Sub') {
+      videoRef.current.play();
+      setIsPlaying(true);
+    }
   };
 
   const handleEventClick = (event) => {
@@ -418,28 +456,28 @@ const FootballAnalysis = () => {
         '9': () => startEvent('Foul Commit'),
       };
 
-if (e.ctrlKey && e.code === 'Digit0') {
-          e.preventDefault();
+      if (e.ctrlKey && e.code === 'Digit0') {
+        e.preventDefault();
         if (videoRef.current) {
           videoRef.current.currentTime = Math.max(0, videoRef.current.currentTime - 10);
         }
-} else if (e.shiftKey && e.code === 'Digit0') {
-          e.preventDefault();
+      } else if (e.shiftKey && e.code === 'Digit0') {
+        e.preventDefault();
         if (videoRef.current) {
-          videoRef.current.currentTime = Math.max(0, videoRef.current.currentTime + 10);
+          videoRef.current.currentTime = Math.min(
+            videoRef.current.duration,
+            videoRef.current.currentTime + 10
+          );
         }
       } else if (keyActions[e.key.toLowerCase()]) {
         e.preventDefault();
         keyActions[e.key.toLowerCase()]();
       }
     };
-
+    
     document.addEventListener('keydown', handleKeyPress);
     return () => document.removeEventListener('keydown', handleKeyPress);
   }, [events]);
-
-
-
 
   return (
     <div className="flex flex-col min-h-screen p-4 space-y-4">
@@ -467,12 +505,12 @@ if (e.ctrlKey && e.code === 'Digit0') {
           onConfirm={handlePlayerSelect}
           onClose={() => {
             setShowPlayerModal(false);
-            setSelectingReceiver(false);
-            setSelectingSecondPlayer(false);
+            setSelectingPlayerOut(false);
+            setSelectingPlayerIn(false);
           }}
           videoRef={videoRef}
           setIsPlaying={setIsPlaying}
-          title={selectingReceiver ? 'Select Player Receiver' : selectingSecondPlayer ? 'Select Player In' : 'Select Player'}
+          title={selectingPlayerOut ? 'Select Player Out' : selectingPlayerIn ? 'Select Player In' : 'Select Player'}
         />
       )}
       {showTechniqueModal && (
@@ -526,6 +564,14 @@ if (e.ctrlKey && e.code === 'Digit0') {
         <PlayerReceiverModal
           onConfirm={handlePlayerReceiverSelect}
           onClose={() => setShowPlayerReceiverModal(false)}
+          videoRef={videoRef}
+          setIsPlaying={setIsPlaying}
+        />
+      )}
+      {showTeamModal && (
+        <TeamModal
+          onConfirm={handleTeamSelect}
+          onClose={() => setShowTeamModal(false)}
           videoRef={videoRef}
           setIsPlaying={setIsPlaying}
         />

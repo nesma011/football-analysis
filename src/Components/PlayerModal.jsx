@@ -14,9 +14,7 @@ const players = [
   'Erling Haaland',
 ];
 
-const teams = ['Team A', 'Team B'];
-
-const PlayerModal = ({ onConfirm, onClose, videoRef, setIsPlaying, title }) => {
+const PlayerModal = ({ onConfirm, onClose, videoRef, setIsPlaying, title, selectingPlayerOut, selectingPlayerIn }) => {
   const [selectedPlayer, setSelectedPlayer] = useState('');
 
   const handleConfirm = () => {
@@ -41,16 +39,16 @@ const PlayerModal = ({ onConfirm, onClose, videoRef, setIsPlaying, title }) => {
           onChange={(e) => setSelectedPlayer(e.target.value)}
           className="w-full p-2 border rounded"
         >
-          <option value="" disabled>Select an option</option>
-          {(title === 'Select Team' ? teams : players).map((option) => (
-            <option key={option} value={option}>
-              {option}
+          <option value="" disabled>Select a player</option>
+          {players.map((player) => (
+            <option key={player} value={player}>
+              {player}
             </option>
           ))}
         </select>
         <div className="mt-2 flex space-x-2">
           <button
-            onClick={() => handleConfirm()}
+            onClick={handleConfirm}
             className="p-2 bg-blue-500 text-white rounded disabled:opacity-50"
             disabled={!selectedPlayer}
           >
@@ -64,4 +62,5 @@ const PlayerModal = ({ onConfirm, onClose, videoRef, setIsPlaying, title }) => {
     </div>
   );
 };
+
 export default PlayerModal;
