@@ -1,18 +1,18 @@
 import React, { useState, useRef, useEffect } from 'react';
-import EventCategories from './Components/EventCategories';
-import PlayerModal from './Components/PlayerModal';
-import ResultModal from './Components/ResultModal';
-import LocationModal from './Components/LocationModal';
-import ExtraInfoModal from './Components/ExtraInfoModal';
-import PlayerReceiverModal from './Components/PlayerReceiverModal';
-import Navbar from './Components/Navbar';
-import ExportButton from './Components/ExportButton';
-import BodyPartModal from './Components/BodyPartModal';
-import EventTable from './Components/EventTable';
-
-import TeamModal from './Components/TeamModal';
-import TechniqueModal from './components/TechniqueModal';
+import EventCategories from './components/EventCategories';
+import TeamModal from './components/TeamModal';
+import PlayerModal from './components/PlayerModal';
+import ResultModal from './components/ResultModal';
+import LocationModal from './components/LocationModal';
+import ExtraInfoModal from './components/ExtraInfoModal';
+import PlayerReceiverModal from './components/PlayerReceiverModal';
+import Navbar from './components/Navbar';
+import ExportButton from './components/ExportButton';
+import BodyPartModal from './components/BodyPartModal';
+import EventTable from './components/EventTable';
 import GoalkeeperModal from './components/GoalkeeperModal';
+
+
 
 const FootballAnalysis = () => {
   const [videoSrc, setVideoSrc] = useState(null);
