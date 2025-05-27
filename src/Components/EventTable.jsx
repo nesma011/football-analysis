@@ -79,10 +79,18 @@ const EventTable = ({ events, onEventClick, setEvents }) => {
                 <td className="px-4 py-2">{formatTimestamp(event.videoTimestamp)}</td>
                 <td className="px-4 py-2">{formatDuration(event.duration)}</td>
                 <td className="px-4 py-2">{event.type || '-'}</td>
-                <td className="px-4 py-2">{event.type === 'Sub' ? '-' : (event.player || '-')}</td>
-                <td className="px-4 py-2">{['Ground Pass', 'Low Pass', 'High Pass'].includes(event.type) ? (event.playerReceiver || '-') : '-'}</td>
-                <td className="px-4 py-2">{event.type === 'Sub' ? (event.playerOut || '-') : '-'}</td>
-                <td className="px-4 py-2">{event.type === 'Sub' ? (event.playerIn || '-') : '-'}</td>
+             <td className="px-4 py-2">
+  {event.type === 'Sub' ? '-' : (event.player || '-')}
+</td>
+<td className="px-4 py-2">
+  {['Ground Pass', 'Low Pass', 'High Pass'].includes(event.type) ? (event.playerReceiver || '-') : '-'}
+</td>
+<td className="px-4 py-2">
+  {event.type === 'Sub' ? (event.playerOut || '-') : '-'}
+</td>
+<td className="px-4 py-2">
+  {event.type === 'Sub' ? (event.playerIn || '-') : '-'}
+</td>
                 <td className="px-4 py-2">{event.team || '-'}</td>
                 <td className="px-4 py-2">{event.startLocation?.x || '-'}</td>
                 <td className="px-4 py-2">{event.startLocation?.y || '-'}</td>

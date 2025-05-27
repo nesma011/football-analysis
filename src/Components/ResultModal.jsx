@@ -1,25 +1,23 @@
 import React from 'react';
 
-const ResultModal = ({ eventType, currentEvent, onConfirm, onClose, videoRef, setIsPlaying }) => {
-  const results = eventType === 'Goalkeeper' && currentEvent?.actionType === 'Punch'
-    ? ['Fail', 'In Play Danger', 'In Play Safe', 'Punched Out', 'Punch Outcome']
-    : eventType === 'Goalkeeper' && currentEvent?.actionType === 'Keeper Sweeper'
-      ? ['Clam', 'Clear']
-      : eventType === 'Goalkeeper'
-        ? ['Success', 'In play Safe', 'In play Danger', 'Saved Twice', 'Touched out', 'Touched in', 'No Touch']
-        : eventType === 'Dribble'
-          ? ['Successful', 'Unsuccessful']
-          : eventType === 'Interception'
-            ? ['Won', 'Lost in Play', 'Lost Out']
-            : eventType === 'Duel'
-              ? ['Lost Out', 'Lost in Play', 'Success In Play', 'Won']
-              : ['Complete', 'Incomplete', 'Out'];
+const ResultModal = ({ eventType, currentEvent, onConfirm, onClose, videoRef, setIsPlaying, outcomes }) => {
+  const results = outcomes || (
+    eventType === 'Goalkeeper' && currentEvent?.actionType === 'Punch'
+      ? ['Fail', 'In Play Danger', 'In Play Safe', 'Punched Out', 'Punch Outcome']
+      : eventType === 'Goalkeeper' && currentEvent?.actionType === 'Keeper Sweeper'
+        ? ['Clam', 'Clear']
+        : eventType === 'Goalkeeper'
+          ? ['Success', 'In Play Safe', 'In Play Danger', 'Saved Twice', 'Touched Out', 'Touched In', 'No Touch']
+          : eventType === 'Dribble'
+            ? ['Successful', 'Unsuccessful']
+            : eventType === 'Interception'
+              ? ['Won', 'Lost In Play', 'Lost Out']
+              : eventType === 'Duel'
+                ? ['Lost Out', 'Lost In Play', 'Success In Play', 'Won']
+                : ['Complete', 'Incomplete', 'Out']
+  );
 
   const handleResultSelect = (result) => {
-    if (videoRef?.current) {
-      videoRef.current.pause();
-      setIsPlaying(false);
-    }
     onConfirm(result);
   };
 

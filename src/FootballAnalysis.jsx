@@ -1,37 +1,17 @@
 import React, { useState, useRef, useEffect } from 'react';
-import TeamModal from './components/TeamModal';
-import PlayerModal from './components/PlayerModal';
-import ResultModal from './components/ResultModal';
-import LocationModal from './components/LocationModal';
-import ExtraInfoModal from './components/ExtraInfoModal';
-import PlayerReceiverModal from './components/PlayerReceiverModal';
 import Navbar from './components/Navbar';
 import ExportButton from './components/ExportButton';
-import BodyPartModal from './components/BodyPartModal';
 import EventTable from './components/EventTable';
-import GoalkeeperModal from './components/GoalkeeperModal';
-import EventCategories from './components/EventCategories';
-import TechniqueModal from './components/TechniqueModal';
-
+import PassEvents from './components/categories/PassEvents';
+import ShotEvents from './components/categories/ShotEvents';
+import PossessionDribblingEvents from './components/categories/PossessionDribblingEvents';
+import DefensiveEvents from './components/categories/DefensiveEvents';
+import SetPiecesSpecialEvents from './components/categories/SetPiecesSpecialEvents';
 
 const FootballAnalysis = () => {
   const [videoSrc, setVideoSrc] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [events, setEvents] = useState([]);
-  const [currentEvent, setCurrentEvent] = useState(null);
-  const [showPlayerModal, setShowPlayerModal] = useState(false);
-  const [showTechniqueModal, setShowTechniqueModal] = useState(false);
-  const [showResultModal, setShowResultModal] = useState(false);
-  const [showLocationModal, setShowLocationModal] = useState(false);
-  const [showExtraInfoModal, setShowExtraInfoModal] = useState(false);
-  const [showPlayerReceiverModal, setShowPlayerReceiverModal] = useState(false);
-  const [showBodyPartModal, setShowBodyPartModal] = useState(false);
-  const [showTeamModal, setShowTeamModal] = useState(false);
-  const [locationType, setLocationType] = useState(null);
-  const [showGoalkeeperModal, setShowGoalkeeperModal] = useState(false);
-  const [selectingPlayerOut, setSelectingPlayerOut] = useState(false);
-  const [selectingPlayerIn, setSelectingPlayerIn] = useState(false);
-  const [pendingPassEvent, setPendingPassEvent] = useState(null);
   const videoRef = useRef(null);
 
   const handleNewVideoUpload = (newVideoURL) => {
@@ -50,29 +30,32 @@ const FootballAnalysis = () => {
     }
     const savedEvents = localStorage.getItem('footballEvents');
     if (savedEvents) {
-      const parsedEvents = JSON.parse(savedEvents).map(event => {
-        const timestamp = event.videoTimestamp !== undefined ? event.videoTimestamp : (event.startTime ? (new Date(event.startTime).getTime() / 1000) : 0);
-        const endTime = event.endTime !== undefined ? event.endTime : (event.videoTimestamp || 0);
-        const duration = event.duration !== undefined ? event.duration : (endTime && timestamp ? (endTime - timestamp) * 1000 / 1000 : 0);
-        return {
-          ...event,
-          id: event.id || Date.now() + Math.random(),
-          videoTimestamp: timestamp,
-          endTime: endTime,
-          duration: duration,
-          extraInfo: event.extraInfo !== undefined && event.extraInfo !== null ? event.extraInfo : '-',
-          passType: event.passType !== undefined && event.passType !== null ? event.passType : '-',
-          bodyPart: event.bodyPart !== undefined && event.bodyPart !== null ? event.bodyPart : '-',
-          saveTechnique: event.saveTechnique !== undefined && event.saveTechnique !== null ? event.saveTechnique : '-',
-          playerReceiver: event.playerReceiver !== undefined && event.playerReceiver !== null ? event.playerReceiver : '-',
-          playerOut: event.playerOut !== undefined && event.playerOut !== null ? event.playerOut : '-',
-          playerIn: event.playerIn !== undefined && event.playerIn !== null ? event.playerIn : '-',
-          team: event.team !== undefined && event.team !== null ? event.team : '-'
-        };
-      });
-      console.log('Loaded Events from localStorage:', parsedEvents);
+      const parsedEvents = JSON.parse(savedEvents).map((event) => ({
+        ...event,
+        id: event.id || Date.now() + Math.random(),
+        videoTimestamp: event.videoTimestamp || (event.startTime ? new Date(event.startTime).getTime() / 1000 : 0),
+        endTime: event.endTime || (event.videoTimestamp || 0),
+        duration: event.duration || (event.endTime && event.videoTimestamp ? (event.endTime - event.videoTimestamp) * 1000 / 1000 : 0),
+        extraInfo: event.extraInfo || '-',
+        passType: event.passType || '-',
+        bodyPart: event.bodyPart || '-',
+        saveTechnique: event.saveTechnique || '-',
+        playerReceiver: event.playerReceiver || '-',
+        playerOut: event.playerOut || '-',
+        playerIn: event.playerIn || '-',
+        team: event.team || '-',
+      }));
       setEvents(parsedEvents);
     }
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (videoRef.current) {
+        videoRef.current.pause();
+        setIsPlaying(false);
+      }
+    };
   }, []);
 
   const openVideo = () => {
@@ -102,321 +85,39 @@ const FootballAnalysis = () => {
     }
   };
 
-const startEvent = (eventType) => {
-    const passEvents = ['Ground Pass', 'Low Pass', 'High Pass'];
-    const resultEvents = ['Goalkeeper', 'Dribble', 'Interception', 'Duel'];
-
-    if (videoRef.current) {
-      videoRef.current.pause();
-      setIsPlaying(false);
-    }
-
-    const existingPendingPass = events.find(event => 
-      event.type === eventType && 
-      event.player && 
-      event.startLocation && 
-      event.technique && 
-      !event.endLocation && 
-      !event.result
-    );
-
-    if (passEvents.includes(eventType) && existingPendingPass) {
-      setCurrentEvent(existingPendingPass);
-      setPendingPassEvent(existingPendingPass);
-      setShowResultModal(true);
-    } else if (eventType === 'Var Stop' || eventType === 'Water Break') {
-      setCurrentEvent({
-        type: eventType,
-        videoTimestamp: videoRef.current?.currentTime || 0,
-        startTime: videoRef.current?.currentTime || 0
-      });
-      finalizeEvent({
-        type: eventType,
-        videoTimestamp: videoRef.current?.currentTime || 0,
-        startTime: videoRef.current?.currentTime || 0,
-        endTime: videoRef.current?.currentTime || 0,
-        duration: 0
-      });
-    } else if (eventType === 'Ball Drop') {
-      setCurrentEvent({
-        type: eventType,
-        videoTimestamp: videoRef.current?.currentTime || 0
-      });
-      setLocationType('start');
-      setShowLocationModal(true);
-    } else if (resultEvents.includes(eventType)) {
-      setCurrentEvent({
-        type: eventType,
-        videoTimestamp: videoRef.current?.currentTime || 0
-      });
-      setShowPlayerModal(true);
-    } else if (eventType === 'Sub') {
-      setCurrentEvent({
-        type: eventType,
-        videoTimestamp: videoRef.current?.currentTime || 0
-      });
-      setSelectingPlayerOut(true);
-      setShowPlayerModal(true);
-    } else if (eventType === 'Own Goal For') {
-      setCurrentEvent({
-        type: eventType,
-        videoTimestamp: videoRef.current?.currentTime || 0
-      });
-      setShowTeamModal(true);
-    } else {
-      setCurrentEvent({
-        type: eventType,
-        videoTimestamp: videoRef.current?.currentTime || 0
-      });
-      setShowPlayerModal(true);
-    }
-  };
-
- const handlePlayerSelect = (playerName) => {
-    if (videoRef.current) {
-      videoRef.current.pause();
-      setIsPlaying(false);
-    }
-    const noExtraEvents = ['Dispossessed', 'Miss control', 'Ball Recovery', 'Offside', 'Own Goal', 'Press', 'Shield', 'Foul Won', 'Clearance', 'Block'];
-    const playerOnlyEvents = ['Error', 'Bad Behaviour', 'Injury Stop'];
-
-    console.log('handlePlayerSelect - playerName:', playerName, 'selectingPlayerOut:', selectingPlayerOut, 'selectingPlayerIn:', selectingPlayerIn, 'currentEvent:', currentEvent);
-
-    if (selectingPlayerOut && currentEvent.type === 'Sub') {
-      const updatedEvent = { ...currentEvent, playerOut: playerName };
-      setCurrentEvent(updatedEvent);
-      setShowPlayerModal(false);
-      setSelectingPlayerOut(false);
-      setSelectingPlayerIn(true);
-      setTimeout(() => {
-        setShowPlayerModal(true);
-      }, 100);
-    } else if (selectingPlayerIn && currentEvent.type === 'Sub') {
-      const updatedEvent = { 
-        ...currentEvent, 
-        playerIn: playerName,
-        startLocation: null,
-        endLocation: null,
-        technique: '-',
-        result: '-',
-        extraInfo: '-',
-        passType: '-',
-        bodyPart: '-',
-        saveTechnique: '-',
-        playerReceiver: '-',
-        team: '-',
-        endTime: videoRef.current?.currentTime || Date.now() / 1000,
-        duration: 0
-      };
-      setCurrentEvent(updatedEvent);
-      setShowPlayerModal(false);
-      setSelectingPlayerIn(false);
-      console.log('Sub Event Complete:', updatedEvent);
-      finalizeEvent(updatedEvent);
-    } else {
-      setCurrentEvent({ ...currentEvent, player: playerName });
-      setShowPlayerModal(false);
-
-      if (currentEvent.type === 'Goalkeeper') {
-        setShowGoalkeeperModal(true);
-      } else if (['Ground Pass', 'Low Pass', 'High Pass', 'Shot'].includes(currentEvent.type)) {
-        setShowTechniqueModal(true);
-      } else if (playerOnlyEvents.includes(currentEvent.type)) {
-        finalizeEvent({ ...currentEvent, player: playerName });
-      } else if (noExtraEvents.includes(currentEvent.type)) {
-        setLocationType('start');
-        setShowLocationModal(true);
-      } else if (['Dribble', 'Interception', 'Duel'].includes(currentEvent.type)) {
-        setLocationType('start');
-        setShowLocationModal(true);
-      } else {
-        setLocationType('start');
-        setShowLocationModal(true);
-      }
-    }
-  };
-
-  const handleTeamSelect = (teamName) => {
-    console.log('handleTeamSelect - teamName:', teamName);
-    setCurrentEvent({ ...currentEvent, team: teamName });
-    setShowTeamModal(false);
-    finalizeEvent({ ...currentEvent, team: teamName });
-  };
-
-  const handleTechniqueSelect = (technique) => {
-    setCurrentEvent({ ...currentEvent, technique });
-    setShowTechniqueModal(false);
-    setLocationType('start');
-    setShowLocationModal(true);
-  };
-
-  const handleLocationSelect = async (x, y) => {
-    if (locationType === 'start') {
-      try {
-        await videoRef.current.pause();
-        setIsPlaying(false);
-        setCurrentEvent({ ...currentEvent, startLocation: { x, y } });
-        const passEvents = ['Ground Pass', 'Low Pass', 'High Pass'];
-        const noExtraEvents = ['Dispossessed', 'Miss control', 'Ball Recovery', 'Offside', 'Own Goal', 'Press', 'Shield', 'Foul Won', 'Clearance', 'Block'];
-        if (passEvents.includes(currentEvent.type)) {
-          setShowLocationModal(false);
-          const tempEvent = {
-            ...currentEvent,
-            id: Date.now() + Math.floor(Math.random() * 1000),
-            startLocation: { x, y },
-            bodyPart: '-',
-            extraInfo: currentEvent.technique || '-',
-            passType: currentEvent.technique || '-',
-            playerReceiver: '-',
-            result: null,
-            endLocation: null
-          };
-          const updatedEvents = [...events, tempEvent];
-          setEvents(updatedEvents);
-          localStorage.setItem('footballEvents', JSON.stringify(updatedEvents));
-          setPendingPassEvent(tempEvent);
-          videoRef.current.play();
-          setIsPlaying(true);
-        } else if (['Duel', 'Goalkeeper', 'Interception', 'Dribble'].includes(currentEvent.type)) {
-          setCurrentEvent({ ...currentEvent, startLocation: { x, y }, endLocation: { x, y } });
-          setShowLocationModal(false);
-          if (currentEvent.type === 'Goalkeeper') {
-            setShowBodyPartModal(true);
-          } else {
-            setShowResultModal(true);
-          }
-        } else if (noExtraEvents.includes(currentEvent.type)) {
-          setShowLocationModal(false);
-          finalizeEvent({ ...currentEvent, startLocation: { x, y } });
-        } else if (currentEvent.type === 'Ball Drop') {
-          setShowLocationModal(false);
-          finalizeEvent({ ...currentEvent, startLocation: { x, y } });
-        } else {
-          setLocationType('end');
-          setShowLocationModal(true);
-          videoRef.current.play();
-          setIsPlaying(true);
-        }
-      } catch (error) {
-        console.error('Error pausing video:', error);
-      }
-    } else if (locationType === 'end') {
-      setCurrentEvent({ ...currentEvent, endLocation: { x, y }, endTime: videoRef.current.currentTime || Date.now() / 1000 });
-      setShowLocationModal(false);
-      setShowExtraInfoModal(true);
-    }
-  };
-
-  const handleBodyPartSelect = (bodyPart) => {
-    if (currentEvent.type === 'Goalkeeper') {
-      setCurrentEvent({ ...currentEvent, bodyPart });
-    }
-    setShowBodyPartModal(false);
-    setShowResultModal(true);
-  };
-
-  const handleResultSelect = (result) => {
-    setCurrentEvent({ ...currentEvent, result });
-    setShowResultModal(false);
-    const passEvents = ['Ground Pass', 'Low Pass', 'High Pass'];
-    if (passEvents.includes(currentEvent.type)) {
-      if (pendingPassEvent) {
-        const updatedEvents = events.filter(event => event.id !== currentEvent.id);
-        setEvents(updatedEvents);
-        localStorage.setItem('footballEvents', JSON.stringify(updatedEvents));
-        if (result === 'Complete') {
-          setShowPlayerReceiverModal(true);
-        } else {
-          setLocationType('end');
-          setShowLocationModal(true);
-        }
-      } else {
-        if (result === 'Complete') {
-          setShowPlayerReceiverModal(true);
-        } else {
-          setLocationType('end');
-          setShowLocationModal(true);
-        }
-      }
-    } else {
-      setShowExtraInfoModal(true);
-    }
-  };
-
-  const handlePlayerReceiverSelect = (playerReceiver) => {
-    setCurrentEvent({ ...currentEvent, playerReceiver });
-    setShowPlayerReceiverModal(false);
-    setShowExtraInfoModal(true);
-  };
-
-  const handleExtraInfoSelect = ({ extraInfo, passType, bodyPart, saveTechnique }) => {
-    const updatedEvent = {
-      ...currentEvent,
-      extraInfo: extraInfo || currentEvent.technique || '-',
-      passType: passType || currentEvent.passType || '-',
-      bodyPart: currentEvent.type === 'Goalkeeper' ? (bodyPart || currentEvent.bodyPart || '-') : '-',
-      saveTechnique: saveTechnique || '-',
-      endTime: currentEvent.endTime || (Date.now() / 1000)
-    };
-    console.log('ExtraInfoSelect - updatedEvent:', updatedEvent);
-    const duration = updatedEvent.endTime && updatedEvent.videoTimestamp
-      ? (updatedEvent.endTime - updatedEvent.videoTimestamp) * 1000 / 1000
-      : (currentEvent.duration || 0);
-    updatedEvent.duration = duration;
-    setCurrentEvent(updatedEvent);
-    setShowExtraInfoModal(false);
-    finalizeEvent(updatedEvent);
-    videoRef.current.play();
-    setIsPlaying(true);
-  };
-
-  const handleGoalkeeperSelect = (action) => {
-    setCurrentEvent({ ...currentEvent, actionType: action });
-    setShowGoalkeeperModal(false);
-    setLocationType('start');
-    setShowLocationModal(true);
-  };
-
-  const finalizeEvent = (updatedEvent = currentEvent) => {
-    const eventId = updatedEvent.id || (Date.now() + Math.floor(Math.random() * 1000));
+  const finalizeEvent = (updatedEvent) => {
+    const eventId = updatedEvent.id || Date.now() + Math.floor(Math.random() * 1000);
     const endTime = updatedEvent.endTime || (videoRef.current?.currentTime || Date.now() / 1000);
-    const duration = updatedEvent.type === 'Var Stop' || updatedEvent.type === 'Water Break'
-      ? (endTime - (updatedEvent.startTime || updatedEvent.videoTimestamp || 0))
-      : (updatedEvent.endTime && updatedEvent.videoTimestamp
+    const duration =
+      updatedEvent.type === 'Var Stop' || updatedEvent.type === 'Water Break'
+        ? endTime - (updatedEvent.startTime || updatedEvent.videoTimestamp || 0)
+        : updatedEvent.endTime && updatedEvent.videoTimestamp
         ? (endTime - updatedEvent.videoTimestamp) * 1000 / 1000
-        : 0);
-    
+        : 0;
+
     const completedEvent = {
       ...updatedEvent,
       id: eventId,
-      endTime: endTime,
-      duration: duration,
+      endTime,
+      duration,
+      player: updatedEvent.type === 'Sub' ? null : updatedEvent.player,
       videoTimestamp: updatedEvent.videoTimestamp || 0,
-      extraInfo: updatedEvent.extraInfo !== undefined && updatedEvent.extraInfo !== null ? updatedEvent.extraInfo : '-',
-      passType: updatedEvent.passType !== undefined && updatedEvent.passType !== null ? updatedEvent.passType : '-',
-      bodyPart: updatedEvent.bodyPart !== undefined && updatedEvent.bodyPart !== null ? updatedEvent.bodyPart : '-',
-      saveTechnique: updatedEvent.saveTechnique !== undefined && updatedEvent.saveTechnique !== null ? updatedEvent.saveTechnique : '-',
-      playerReceiver: updatedEvent.playerReceiver !== undefined && updatedEvent.playerReceiver !== null ? updatedEvent.playerReceiver : '-',
-      playerOut: updatedEvent.playerOut !== undefined && updatedEvent.playerOut !== null ? updatedEvent.playerOut : '-',
-      playerIn: updatedEvent.playerIn !== undefined && updatedEvent.playerIn !== null ? updatedEvent.playerIn : '-',
-      team: updatedEvent.team !== undefined && updatedEvent.team !== null ? updatedEvent.team : '-'
+      extraInfo: updatedEvent.type === 'Sub' ? '-' : updatedEvent.extraInfo || '-',
+      passType: updatedEvent.type === 'Sub' ? '-' : updatedEvent.passType || '-',
+      bodyPart: updatedEvent.type === 'Sub' ? '-' : updatedEvent.bodyPart || '-',
+      saveTechnique: updatedEvent.type === 'Sub' ? '-' : updatedEvent.saveTechnique || '-',
+      playerReceiver: updatedEvent.type === 'Sub' ? '-' : updatedEvent.playerReceiver || '-',
+      playerOut: updatedEvent.type === 'Sub' ? updatedEvent.playerOut || '-' : '-',
+      playerIn: updatedEvent.type === 'Sub' ? updatedEvent.playerIn || '-' : '-',
+      team: updatedEvent.team || '-',
+      startLocation: updatedEvent.type === 'Sub' ? null : updatedEvent.startLocation,
+      endLocation: updatedEvent.type === 'Sub' ? null : updatedEvent.endLocation,
     };
-    
-    console.log('FinalizeEvent - completedEvent:', completedEvent);
-    
-    const updatedEvents = events.filter(event => event.id !== completedEvent.id);
+
+    const updatedEvents = events.filter((event) => event.id !== completedEvent.id);
     updatedEvents.push(completedEvent);
     setEvents(updatedEvents);
     localStorage.setItem('footballEvents', JSON.stringify(updatedEvents));
-    
-    setCurrentEvent(null);
-    setPendingPassEvent(null);
-    
-    // Don't auto-play video for Sub events
-    if (updatedEvent.type !== 'Sub') {
-      videoRef.current.play();
-      setIsPlaying(true);
-    }
   };
 
   const handleEventClick = (event) => {
@@ -427,33 +128,27 @@ const startEvent = (eventType) => {
       videoRef.current.pause();
       setIsPlaying(false);
     }
-    const passEvents = ['Ground Pass', 'Low Pass', 'High Pass'];
-    if (passEvents.includes(event.type) && !event.endLocation && !event.result) {
-      setCurrentEvent(event);
-      setPendingPassEvent(event);
-      setShowResultModal(true);
-    }
   };
 
   useEffect(() => {
     const handleKeyPress = (e) => {
       const keyActions = {
-        'w': () => startEvent('Ground Pass'),
-        'q': () => startEvent('High Pass'),
-        'e': () => startEvent('Low Pass'),
-        'd': () => startEvent('Shot'),
-        't': () => startEvent('Dribble'),
-        's': () => startEvent('Dispossessed'),
-        '5': () => startEvent('Miss control'),
-        'r': () => startEvent('Ball Recovery'),
-        'g': () => startEvent('Press'),
-        '8': () => startEvent('Foul Won'),
-        'a': () => startEvent('Duel'),
-        'x': () => startEvent('Interception'),
-        'f': () => startEvent('Clearance'),
-        'b': () => startEvent('Block'),
-        'n': () => startEvent('Dribbled Past'),
-        '9': () => startEvent('Foul Commit'),
+        w: () => document.querySelector(`button[data-type="Ground Pass"]`)?.click(),
+        q: () => document.querySelector(`button[data-type="High Pass"]`)?.click(),
+        e: () => document.querySelector(`button[data-type="Low Pass"]`)?.click(),
+        d: () => document.querySelector(`button[data-type="Shot"]`)?.click(),
+        t: () => document.querySelector(`button[data-type="Dribble"]`)?.click(),
+        s: () => document.querySelector(`button[data-type="Dispossessed"]`)?.click(),
+        5: () => document.querySelector(`button[data-type="Miss control"]`)?.click(),
+        r: () => document.querySelector(`button[data-type="Ball Recovery"]`)?.click(),
+        g: () => document.querySelector(`button[data-type="Press"]`)?.click(),
+        8: () => document.querySelector(`button[data-type="Foul Won"]`)?.click(),
+        a: () => document.querySelector(`button[data-type="Duel"]`)?.click(),
+        x: () => document.querySelector(`button[data-type="Interception"]`)?.click(),
+        f: () => document.querySelector(`button[data-type="Clearance"]`)?.click(),
+        b: () => document.querySelector(`button[data-type="Block"]`)?.click(),
+        n: () => document.querySelector(`button[data-type="Dribbled Past"]`)?.click(),
+        9: () => document.querySelector(`button[data-type="Foul Commit"]`)?.click(),
       };
 
       if (e.ctrlKey && e.code === 'Digit0') {
@@ -474,7 +169,7 @@ const startEvent = (eventType) => {
         keyActions[e.key.toLowerCase()]();
       }
     };
-    
+
     document.addEventListener('keydown', handleKeyPress);
     return () => document.removeEventListener('keydown', handleKeyPress);
   }, [events]);
@@ -493,89 +188,47 @@ const startEvent = (eventType) => {
           </div>
         </div>
         <div className="w-full md:w-1/3 mt-4 md:mt-0">
-          <EventCategories startEvent={startEvent} videoRef={videoRef} setIsPlaying={setIsPlaying} />
+          <PassEvents
+            videoRef={videoRef}
+            setIsPlaying={setIsPlaying}
+            events={events}
+            setEvents={setEvents}
+            finalizeEvent={finalizeEvent}
+          />
+          <ShotEvents
+            videoRef={videoRef}
+            setIsPlaying={setIsPlaying}
+            events={events}
+            setEvents={setEvents}
+            finalizeEvent={finalizeEvent}
+          />
+          <PossessionDribblingEvents
+            videoRef={videoRef}
+            setIsPlaying={setIsPlaying}
+            events={events}
+            setEvents={setEvents}
+            finalizeEvent={finalizeEvent}
+          />
+          <DefensiveEvents
+            videoRef={videoRef}
+            setIsPlaying={setIsPlaying}
+            events={events}
+            setEvents={setEvents}
+            finalizeEvent={finalizeEvent}
+          />
+          <SetPiecesSpecialEvents
+            videoRef={videoRef}
+            setIsPlaying={setIsPlaying}
+            events={events}
+            setEvents={setEvents}
+            finalizeEvent={finalizeEvent}
+          />
         </div>
       </div>
       <div className="w-full mt-8">
         <EventTable events={events} onEventClick={handleEventClick} setEvents={setEvents} />
         <ExportButton events={events} />
       </div>
-      {showPlayerModal && (
-        <PlayerModal
-          onConfirm={handlePlayerSelect}
-          onClose={() => {
-            setShowPlayerModal(false);
-            setSelectingPlayerOut(false);
-            setSelectingPlayerIn(false);
-          }}
-          videoRef={videoRef}
-          setIsPlaying={setIsPlaying}
-          title={selectingPlayerOut ? 'Select Player Out' : selectingPlayerIn ? 'Select Player In' : 'Select Player'}
-        />
-      )}
-      {showTechniqueModal && (
-        <TechniqueModal
-          eventType={currentEvent?.type}
-          onConfirm={handleTechniqueSelect}
-          onClose={() => setShowTechniqueModal(false)}
-          videoRef={videoRef}
-          setIsPlaying={setIsPlaying}
-        />
-      )}
-      {showResultModal && (
-        <ResultModal
-          eventType={currentEvent?.type}
-          currentEvent={currentEvent}
-          onConfirm={handleResultSelect}
-          onClose={() => setShowResultModal(false)}
-          videoRef={videoRef}
-          setIsPlaying={setIsPlaying}
-        />
-      )}
-      {showGoalkeeperModal && (
-        <GoalkeeperModal
-          onConfirm={handleGoalkeeperSelect}
-          onClose={() => setShowGoalkeeperModal(false)}
-          videoRef={videoRef}
-          setIsPlaying={setIsPlaying}
-        />
-      )}
-      {showLocationModal && (
-        <LocationModal onSelect={handleLocationSelect} onClose={() => setShowLocationModal(false)} videoRef={videoRef} setIsPlaying={setIsPlaying} />
-      )}
-      {showBodyPartModal && (
-        <BodyPartModal
-          onConfirm={handleBodyPartSelect}
-          onClose={() => setShowBodyPartModal(false)}
-          videoRef={videoRef}
-          setIsPlaying={setIsPlaying}
-        />
-      )}
-      {showExtraInfoModal && (
-        <ExtraInfoModal
-          eventType={currentEvent?.type}
-          onConfirm={handleExtraInfoSelect}
-          onClose={() => setShowExtraInfoModal(false)}
-          videoRef={videoRef}
-          setIsPlaying={setIsPlaying}
-        />
-      )}
-      {showPlayerReceiverModal && (
-        <PlayerReceiverModal
-          onConfirm={handlePlayerReceiverSelect}
-          onClose={() => setShowPlayerReceiverModal(false)}
-          videoRef={videoRef}
-          setIsPlaying={setIsPlaying}
-        />
-      )}
-      {showTeamModal && (
-        <TeamModal
-          onConfirm={handleTeamSelect}
-          onClose={() => setShowTeamModal(false)}
-          videoRef={videoRef}
-          setIsPlaying={setIsPlaying}
-        />
-      )}
     </div>
   );
 };
