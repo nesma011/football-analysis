@@ -98,7 +98,6 @@ const ShotEvents = ({ videoRef, setIsPlaying, events, setEvents, finalizeEvent }
     setShowResultModal(false);
 
     if (['Saved', 'Goal', 'Penalty Saved', 'Offtarget', 'Post'].includes(result)) {
-      // Add to events as a pending shot event to capture endLocation later
       const tempEvent = {
         ...updatedEvent,
         id: Date.now() + Math.floor(Math.random() * 1000),
@@ -110,7 +109,6 @@ const ShotEvents = ({ videoRef, setIsPlaying, events, setEvents, finalizeEvent }
       videoRef.current.play();
       setIsPlaying(true);
     } else {
-      // For 'Blocked', finalize the event directly
       const duration =
         updatedEvent.endTime && updatedEvent.videoTimestamp
           ? (updatedEvent.endTime - updatedEvent.videoTimestamp) * 1000 / 1000
@@ -131,7 +129,6 @@ const ShotEvents = ({ videoRef, setIsPlaying, events, setEvents, finalizeEvent }
     setCurrentEvent(updatedEvent);
     setShowGoalLocationModal(false);
 
-    // Remove the pending event from events and finalize
     const updatedEvents = events.filter((event) => event.id !== currentEvent.id);
     setEvents(updatedEvents);
     localStorage.setItem('footballEvents', JSON.stringify(updatedEvents));

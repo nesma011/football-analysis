@@ -12,17 +12,8 @@ const GoalLocation = ({ onSelect, onClose, videoRef, setIsPlaying }) => {
     }
   }, [videoRef, setIsPlaying]);
 
-  const svgWidth = 600;
-  const svgHeight = 400;
-
-  // Dimensions based on the sketch (in pixels)
-  const goalWidth = 96; // 16% of 600
-  const goalHeight = 122.72; // 30.68% of 400
-  const grassHeight = 120; // 30% of 400
-
-  // Goal position
-  const goalX = (svgWidth - goalWidth) / 2; // ≈ 252 pixels
-  const goalY = svgHeight - grassHeight; // 400 - 120 = 280 pixels
+  const svgWidth = 600; 
+  const svgHeight = 400; 
 
   const handleSvgClick = (event) => {
     const svg = event.currentTarget;
@@ -32,10 +23,9 @@ const GoalLocation = ({ onSelect, onClose, videoRef, setIsPlaying }) => {
     const svgPoint = point.matrixTransform(svg.getScreenCTM().inverse());
     setSelectedPoint({ x: svgPoint.x, y: svgPoint.y });
 
-    const adjustedX = svgPoint.x - goalX;
-    const adjustedY = svgPoint.y - goalY;
-    const scaledX = (adjustedX / goalWidth) * 100;
-    const scaledY = (adjustedY / goalHeight) * 100;
+    
+    const scaledX = (svgPoint.x / svgWidth) * 100;
+    const scaledY = (svgPoint.y / svgHeight) * 100;
     const roundedX = Math.round(scaledX * 10) / 10;
     const roundedY = Math.round(scaledY * 10) / 10;
     const finalX = Math.max(0, Math.min(100, roundedX));
@@ -45,7 +35,7 @@ const GoalLocation = ({ onSelect, onClose, videoRef, setIsPlaying }) => {
 
   const handleConfirm = () => {
     if (selectedPoint && coordinates.finalX !== null && coordinates.finalY !== null) {
-      onSelect(coordinates.finalX, coordinates.finalY); 
+      onSelect(coordinates.finalX, coordinates.finalY);
     }
     if (videoRef.current) {
       videoRef.current.play();
@@ -75,7 +65,7 @@ const GoalLocation = ({ onSelect, onClose, videoRef, setIsPlaying }) => {
               y="0"
               width={svgWidth}
               height={svgHeight}
-              href={goal} 
+              href={goal}
               preserveAspectRatio="xMidYMid meet"
             />
 
@@ -96,11 +86,11 @@ const GoalLocation = ({ onSelect, onClose, videoRef, setIsPlaying }) => {
             <div className="grid grid-cols-2 gap-4">
               <div className="bg-white rounded-lg p-3 border border-gray-200">
                 <div className="text-blue-600 font-medium">position X: {coordinates.finalX}</div>
-                <div className="text-sm text-gray-500">Distance from left goal line</div>
+                <div className="text-sm text-gray-500">Percentage from left edge</div>
               </div>
               <div className="bg-white rounded-lg p-3 border border-gray-200">
                 <div className="text-green-600 font-medium">position Y: {coordinates.finalY}</div>
-                <div className="text-sm text-gray-500">Distance from bottom sideline</div>
+                <div className="text-sm text-gray-500">Percentage from top edge</div>
               </div>
             </div>
           </div>
